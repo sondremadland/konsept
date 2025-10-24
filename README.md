@@ -1,73 +1,183 @@
-# Welcome to your Lovable project
+# VenneSpill - Sosiale Konkurranser for Norske Vennegjenger 🎉
 
-## Project info
+VenneSpill er en progressiv webapp (PWA) som tilbyr sosiale konkurranser og utfordringer for vennegjenger. Kjøp konsepter, registrer deltakere, og se hvem som blir gjengens mester!
 
-**URL**: https://lovable.dev/projects/f584b2f3-37e7-4c06-9a48-4a2d26bb45dc
+## 🚀 Funksjoner
 
-## How can I edit this code?
+- 📱 **PWA-støtte** - Installer som app på mobil og desktop
+- 🎮 **Flere spillkonsepter** - Turneringskveld, Konkurranseløp, Utfordringsbonanza
+- 🏆 **Live poengtavle** - Se rangeringer i sanntid
+- 👥 **Brukeradministrasjon** - Enkel pålogging med Google
+- 🔧 **Admin-panel** - Administrer konsepter og bestillinger
+- 🔐 **Sikkerhet** - GDPR-samsvar med Supabase RLS
+- 🎨 **Fargerik design** - Leken og morsom brukeropplevelse
 
-There are several ways of editing your application.
+## 🛠️ Teknologi
+
+- **Frontend**: React + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Backend**: Supabase (via Lovable Cloud)
+  - Database (PostgreSQL)
+  - Authentication
+  - Row Level Security (RLS)
+- **PWA**: vite-plugin-pwa
+- **Deployment**: Vercel (anbefalt)
+
+## 📋 Forutsetninger
+
+- Node.js 18+ og npm/yarn/bun
+- Lovable Cloud-konto (for backend)
+
+## 🔧 Installasjon
+
+1. **Klon repositoryet**
+   ```bash
+   git clone <YOUR_GIT_URL>
+   cd <YOUR_PROJECT_NAME>
+   ```
+
+2. **Installer avhengigheter**
+   ```bash
+   npm install
+   ```
+
+3. **Konfigurer miljøvariabler**
+   
+   Kopier `.env.example` til `.env` og fyll inn verdiene:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Miljøvariablene settes automatisk opp via Lovable Cloud.
+
+4. **Start utviklingsserver**
+   ```bash
+   npm run dev
+   ```
+   
+   Appen kjører nå på `http://localhost:8080`
+
+## 🏗️ Bygg for produksjon
+
+```bash
+npm run build
+```
+
+Bygget havner i `dist/`-mappen og kan deployes til en statisk hosting-tjeneste.
+
+## 🚀 Deploy
+
+### Vercel (Anbefalt)
+
+1. Push koden til GitHub
+2. Gå til [vercel.com](https://vercel.com)
+3. Importer GitHub-repositoryet
+4. Vercel setter automatisk opp bygget
+5. Legg til miljøvariabler i Vercel-dashboardet
+
+### Andre alternativer
+
+- **Netlify**: Lignende prosess som Vercel
+- **Cloudflare Pages**: Gratis hosting med CDN
+- **Firebase Hosting**: Google's hosting-løsning
+
+### Lovable Hosting
+
+Simply open [Lovable](https://lovable.dev/projects/f584b2f3-37e7-4c06-9a48-4a2d26bb45dc) and click on Share -> Publish.
+
+## 📦 Database
+
+Databaseskjema administreres via Supabase migrations. Tabeller:
+
+- `concepts` - Spillkonsepter med priser
+- `orders` - Bestillinger fra brukere
+- `user_games` - Brukernes aktive spill
+- `participants` - Deltakere i spill
+- `rounds` - Runder i et spill
+- `scores` - Poengsum per deltaker per runde
+- `user_roles` - Brukerroller (admin/user)
+
+## 🔐 Sikkerhet
+
+- Row Level Security (RLS) aktivert på alle tabeller
+- Sikker autentisering med Supabase Auth
+- GDPR-samsvar med personvernerklæring
+- Ingen sensitive data lagres i frontend
+
+## 🎨 Tilpasning
+
+Design-system finnes i:
+- `src/index.css` - Fargepalett og design tokens
+- `tailwind.config.ts` - Tailwind-konfigurasjon
+
+## 📱 PWA-funksjonalitet
+
+PWA-konfigurasjonen finnes i `vite.config.ts`. For å oppdatere:
+
+- **Manifest**: `vite.config.ts` -> `manifest`
+- **Ikoner**: Legg til i `public/`-mappen
+- **Service Worker**: Håndteres automatisk av vite-plugin-pwa
+
+## 🧪 Testing
+
+```bash
+# Kjør linting
+npm run lint
+
+# Type-checking (hvis konfigurert)
+npm run type-check
+```
+
+## 🔗 Lenker
+
+- **Lovable Project**: https://lovable.dev/projects/f584b2f3-37e7-4c06-9a48-4a2d26bb45dc
+- **Custom Domain Setup**: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## 📝 Redigering
 
 **Use Lovable**
 
 Simply visit the [Lovable Project](https://lovable.dev/projects/f584b2f3-37e7-4c06-9a48-4a2d26bb45dc) and start prompting.
 
-Changes made via Lovable will be committed automatically to this repo.
-
 **Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 Follow these steps:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Step 2: Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
+# Step 3: Install dependencies
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📄 Lisens
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Alle rettigheter forbeholdt VenneSpill AS © 2025
 
-**Use GitHub Codespaces**
+## 🤝 Bidrag
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Dette er et privat prosjekt. Kontakt oss for samarbeidsmuligheter.
 
-## What technologies are used for this project?
+## 📞 Kontakt
 
-This project is built with:
+- **E-post**: support@vennespill.no
+- **Nettside**: [vennespill.no](https://vennespill.no)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔮 Fremtidige funksjoner
 
-## How can I deploy this project?
+- [ ] Stripe-integrasjon for betalinger
+- [ ] Deling av resultater til sosiale medier
+- [ ] Mulighet for å laste opp gruppebilder
+- [ ] Push-notifikasjoner for poengopdateringer
+- [ ] Flere spillkonsepter
 
-Simply open [Lovable](https://lovable.dev/projects/f584b2f3-37e7-4c06-9a48-4a2d26bb45dc) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+**Laget med ❤️ i Norge 🇳🇴**

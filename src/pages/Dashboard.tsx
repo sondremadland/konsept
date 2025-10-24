@@ -63,6 +63,13 @@ const Dashboard = () => {
       return;
     }
 
+    // Check if onboarding is completed
+    const onboardingCompleted = localStorage.getItem("onboarding_completed");
+    if (!onboardingCompleted) {
+      navigate("/onboarding");
+      return;
+    }
+
     setUser(session.user);
     
     // Check if user is admin

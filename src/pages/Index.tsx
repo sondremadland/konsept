@@ -210,8 +210,20 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="border-t py-8 bg-muted/30">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2025 VenneSpill - Norges morsomste konkurranser for vennegjenger 🇳🇴</p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-muted-foreground">
+              © 2025 VenneSpill - Norges morsomste konkurranser for vennegjenger 🇳🇴
+            </p>
+            <div className="flex gap-6">
+              <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+                Personvern
+              </Link>
+              <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+                Brukervilkår
+              </Link>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

@@ -9,6 +9,9 @@ import ConceptDetail from "./pages/ConceptDetail";
 import Dashboard from "./pages/Dashboard";
 import Game from "./pages/Game";
 import Admin from "./pages/Admin";
+import Onboarding from "./pages/Onboarding";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/game/:id" element={<Game />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
