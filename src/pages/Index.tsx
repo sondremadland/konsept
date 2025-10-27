@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+
+// Temporary type workaround until Supabase types are regenerated
+const db = supabase as any;
 import { Sparkles, Trophy, Users, ArrowRight } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
 import concept1 from "@/assets/concept-1.jpg";
@@ -45,7 +48,7 @@ const Index = () => {
   }, []);
 
   const fetchConcepts = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("concepts")
       .select("*")
       .eq("active", true)

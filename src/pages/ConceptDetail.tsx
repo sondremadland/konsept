@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+
+// Temporary type workaround until Supabase types are regenerated
+const db = supabase as any;
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,7 +54,7 @@ const ConceptDetail = () => {
   }, [id]);
 
   const fetchConcept = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("concepts")
       .select("*")
       .eq("id", id)
@@ -85,7 +88,7 @@ const ConceptDetail = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("orders").insert({
+      const { error } = await db.from("orders").insert({
         user_id: user.id,
         concept_id: id,
         user_name: formData.name,

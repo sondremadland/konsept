@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+
+// Temporary type workaround until Supabase types are regenerated
+const db = supabase as any;
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -73,7 +76,7 @@ const Dashboard = () => {
     setUser(session.user);
     
     // Check if user is admin
-    const { data: roleData } = await supabase
+    const { data: roleData } = await db
       .from("user_roles")
       .select("role")
       .eq("user_id", session.user.id)
@@ -87,7 +90,7 @@ const Dashboard = () => {
   };
 
   const fetchGames = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("user_games")
       .select("*, concepts(name)")
       .order("created_at", { ascending: false });
@@ -100,7 +103,7 @@ const Dashboard = () => {
   };
 
   const fetchConcepts = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("concepts")
       .select("id, name")
       .eq("active", true);
@@ -116,7 +119,7 @@ const Dashboard = () => {
     e.preventDefault();
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("user_games")
         .insert({
           user_id: user.id,
@@ -135,7 +138,7 @@ const Dashboard = () => {
 
       setDialogOpen(false);
       setNewGame({ groupName: "", conceptId: "" });
-      navigate(`/game/${data.id}`);
+      if (data) navigate(`/game/${data.id}`);
     } catch (error: any) {
       toast({
         title: "Kunne ikke opprette spill",

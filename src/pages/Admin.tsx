@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+
+// Temporary type workaround until Supabase types are regenerated
+const db = supabase as any;
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft, Plus, Pencil, Trash2, Package, Users } from "lucide-react";
@@ -53,7 +56,7 @@ const Admin = () => {
       return;
     }
 
-    const { data } = await supabase
+    const { data } = await db
       .from("user_roles")
       .select("role")
       .eq("user_id", session.user.id)
@@ -70,7 +73,7 @@ const Admin = () => {
   };
 
   const fetchConcepts = async () => {
-    const { data } = await supabase
+    const { data } = await db
       .from("concepts")
       .select("*")
       .order("created_at", { ascending: false });
@@ -78,7 +81,7 @@ const Admin = () => {
   };
 
   const fetchOrders = async () => {
-    const { data } = await supabase
+    const { data } = await db
       .from("orders")
       .select("*, concepts(name)")
       .order("created_at", { ascending: false });
@@ -89,7 +92,7 @@ const Admin = () => {
     e.preventDefault();
     try {
       if (editingConcept) {
-        const { error } = await supabase
+        const { error } = await db
           .from("concepts")
           .update({
             name: formData.name,
@@ -101,7 +104,7 @@ const Admin = () => {
         if (error) throw error;
         toast({ title: "Konsept oppdatert! ✅" });
       } else {
-        const { error } = await supabase
+        const { error } = await db
           .from("concepts")
           .insert({
             name: formData.name,
@@ -136,7 +139,7 @@ const Admin = () => {
     if (!confirm("Er du sikker på at du vil slette dette konseptet?")) return;
     
     try {
-      const { error } = await supabase
+      const { error } = await db
         .from("concepts")
         .delete()
         .eq("id", id);
@@ -151,7 +154,7 @@ const Admin = () => {
 
   const toggleActive = async (concept: Concept) => {
     try {
-      const { error } = await supabase
+      const { error } = await db
         .from("concepts")
         .update({ active: !concept.active })
         .eq("id", concept.id);

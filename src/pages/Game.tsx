@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+
+// Temporary type workaround until Supabase types are regenerated
+const db = supabase as any;
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,7 +40,7 @@ const Game = () => {
   };
 
   const fetchGame = async () => {
-    const { data } = await supabase
+    const { data } = await db
       .from("user_games")
       .select("*, concepts(name)")
       .eq("id", id)
@@ -46,7 +49,7 @@ const Game = () => {
   };
 
   const fetchParticipants = async () => {
-    const { data } = await supabase
+    const { data } = await db
       .from("participants")
       .select("*")
       .eq("game_id", id)
@@ -56,7 +59,7 @@ const Game = () => {
 
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from("participants").insert({
+    const { error } = await db.from("participants").insert({
       game_id: id,
       name: newParticipant,
     });
