@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 // Temporary type workaround until Supabase types are regenerated
 const db = supabase as any;
@@ -54,21 +55,36 @@ const ConceptDetail = () => {
   }, [id]);
 
   const fetchConcept = async () => {
-    const { data, error } = await db
-      .from("concepts")
-      .select("*")
-      .eq("id", id)
-      .single();
+    try {
+      const { data, error } = await db
+        .from("concepts")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
 
-    if (error) {
-      toast({
-        title: "Feil",
-        description: "Kunne ikke hente konsept",
-        variant: "destructive",
-      });
+      if (error) {
+        logger.error("Failed to fetch concept", error, { conceptId: id });
+        toast({
+          title: "Feil",
+          description: "Kunne ikke hente konsept",
+          variant: "destructive",
+        });
+        navigate("/");
+      } else if (!data) {
+        logger.warn("Concept not found", { conceptId: id });
+        toast({
+          title: "Ikke funnet",
+          description: "Konseptet finnes ikke",
+          variant: "destructive",
+        });
+        navigate("/");
+      } else {
+        setConcept(data);
+        logger.info("Concept fetched successfully", { conceptId: id, name: data.name });
+      }
+    } catch (error) {
+      logger.error("Unexpected error fetching concept", error as Error, { conceptId: id });
       navigate("/");
-    } else {
-      setConcept(data);
     }
   };
 
@@ -96,7 +112,18 @@ const ConceptDetail = () => {
         status: "pending",
       });
 
-      if (error) throw error;
+      if (error) {
+        logger.error("Failed to create order", error, {
+          conceptId: id,
+          userId: user.id,
+        });
+        throw error;
+      }
+
+      logger.info("Order created successfully", {
+        conceptId: id,
+        userId: user.id,
+      });
 
       toast({
         title: "Bestilling mottatt! 🎉",
@@ -105,9 +132,10 @@ const ConceptDetail = () => {
 
       navigate("/dashboard");
     } catch (error: any) {
+      logger.error("Order submission failed", error);
       toast({
         title: "Noe gikk galt",
-        description: error.message,
+        description: error.message || "Kunne ikke sende bestilling. Prøv igjen senere.",
         variant: "destructive",
       });
     } finally {
@@ -138,6 +166,7 @@ const ConceptDetail = () => {
                 src={conceptImages[concept.name] || concept1}
                 alt={concept.name}
                 className="w-full h-auto"
+                loading="lazy"
               />
             </div>
             <Card>

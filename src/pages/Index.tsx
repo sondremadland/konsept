@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 // Temporary type workaround until Supabase types are regenerated
 const db = supabase as any;
@@ -48,16 +49,21 @@ const Index = () => {
   }, []);
 
   const fetchConcepts = async () => {
-    const { data, error } = await db
-      .from("concepts")
-      .select("*")
-      .eq("active", true)
-      .order("price");
-    
-    if (error) {
-      console.error("Error fetching concepts:", error);
-    } else {
-      setConcepts(data || []);
+    try {
+      const { data, error } = await db
+        .from("concepts")
+        .select("*")
+        .eq("active", true)
+        .order("price");
+
+      if (error) {
+        logger.error("Failed to fetch concepts", error, { source: 'Index.fetchConcepts' });
+      } else {
+        setConcepts(data || []);
+        logger.info("Concepts fetched successfully", { count: data?.length || 0 });
+      }
+    } catch (error) {
+      logger.error("Unexpected error fetching concepts", error as Error);
     }
   };
 
@@ -114,7 +120,12 @@ const Index = () => {
               </div>
             </div>
             <div className="rounded-2xl overflow-hidden shadow-glow">
-              <img src={heroImage} alt="Venner som har det gøy" className="w-full h-auto" />
+              <img
+                src={heroImage}
+                alt="Venner som har det gøy"
+                className="w-full h-auto"
+                loading="lazy"
+              />
             </div>
           </div>
         </div>
@@ -168,10 +179,11 @@ const Index = () => {
             {concepts.map((concept) => (
               <Card key={concept.id} className="shadow-card hover:shadow-glow transition-all duration-300 border-2">
                 <div className="aspect-square overflow-hidden rounded-t-xl">
-                  <img 
-                    src={conceptImages[concept.name] || concept1} 
+                  <img
+                    src={conceptImages[concept.name] || concept1}
                     alt={concept.name}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
                 <CardHeader>

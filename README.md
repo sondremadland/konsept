@@ -100,12 +100,25 @@ Databaseskjema administreres via Supabase migrations. Tabeller:
 - `scores` - Poengsum per deltaker per runde
 - `user_roles` - Brukerroller (admin/user)
 
-## 🔐 Sikkerhet
+## 🔐 Sikkerhet og Compliance
 
+### Sikkerhet
 - Row Level Security (RLS) aktivert på alle tabeller
 - Sikker autentisering med Supabase Auth
-- GDPR-samsvar med personvernerklæring
-- Ingen sensitive data lagres i frontend
+- HTTPS/SSL kryptering for all datatransmisjon
+- Ingen sensitive data eller API-nøkler eksponert i frontend
+
+### GDPR-samsvar
+- Personvernerklæring tilgjengelig på `/privacy`
+- Brukervilkår tilgjengelig på `/terms`
+- Brukere har rett til innsyn, retting og sletting
+- Data isoleres per bruker via RLS
+- Cascade delete ved brukersletting
+
+### Databehandling
+- Kun nødvendig data samles inn (e-post, navn, spilldata)
+- Ingen tredjeparts sporing eller analytics
+- Data lagres sikkert i Supabase (EU-basert)
 
 ## 🎨 Tilpasning
 
@@ -182,8 +195,29 @@ Dette er et privat prosjekt. Kontakt oss for samarbeidsmuligheter.
 - **E-post**: support@vennespill.no
 - **Nettside**: [vennespill.no](https://vennespill.no)
 
+## 💳 Betalingsintegrasjon (Fase 2)
+
+Stripe-integrasjon er forberedt men ikke aktivert ennå. Se `src/lib/stripe.ts` for implementasjonsdetaljer.
+
+For å aktivere Stripe:
+1. Opprett en Stripe-konto på [stripe.com](https://stripe.com)
+2. Legg til `VITE_STRIPE_PUBLISHABLE_KEY` i `.env`
+3. Opprett en Supabase Edge Function for betalingshåndtering
+4. Oppdater `ConceptDetail.tsx` til å bruke Stripe-funksjonene
+
+## ⚡ Ytelse og Kvalitet
+
+- Lazy loading av bilder for rask lasting
+- Optimalisert bundling med Vite
+- PWA-caching for offline-støtte
+- Error boundary for graceful feilhåndtering
+- Strukturert logging i development-modus
+- Lighthouse-score mål: 90+ for Performance og PWA
+
 ## 🔮 Fremtidige funksjoner
 
+- [x] Bestillingsskjema med e-post
+- [x] Privacy og Terms pages
 - [ ] Stripe-integrasjon for betalinger
 - [ ] Deling av resultater til sosiale medier
 - [ ] Mulighet for å laste opp gruppebilder
