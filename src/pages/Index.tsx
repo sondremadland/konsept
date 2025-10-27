@@ -219,6 +219,9 @@ const Index = () => {
               © 2025 VenneSpill - Norges morsomste konkurranser for vennegjenger 🇳🇴
             </p>
             <div className="flex gap-6">
+              <Link to="/install" className="text-muted-foreground hover:text-primary transition-colors">
+                Installer app
+              </Link>
               <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
                 Personvern
               </Link>

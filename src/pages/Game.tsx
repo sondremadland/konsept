@@ -44,6 +44,7 @@ const Game = () => {
   const [scoreDialogOpen, setScoreDialogOpen] = useState(false);
   const [selectedRound, setSelectedRound] = useState<Round | null>(null);
   const [scores, setScores] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     checkAuth();
@@ -96,6 +97,7 @@ const Game = () => {
       .eq("id", id)
       .single();
     setGame(data);
+    setLoading(false);
   };
 
   const fetchParticipants = async () => {
@@ -187,6 +189,32 @@ const Game = () => {
       setSelectedRound(null);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Laster spill...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!game) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="py-8 text-center">
+            <p className="text-muted-foreground mb-4">Spillet ble ikke funnet</p>
+            <Button asChild>
+              <Link to="/dashboard">Tilbake til dashboard</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

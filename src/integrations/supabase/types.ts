@@ -14,16 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      concepts: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description: string
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          concept_id: string
+          created_at: string | null
+          id: string
+          status: string | null
+          user_email: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          concept_id: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_email: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          concept_id?: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_email?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_concept_id_fkey"
+            columns: ["concept_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      participants: {
+        Row: {
+          created_at: string | null
+          game_id: string
+          id: string
+          name: string
+          total_points: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          game_id: string
+          id?: string
+          name: string
+          total_points?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          game_id?: string
+          id?: string
+          name?: string
+          total_points?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "user_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rounds: {
+        Row: {
+          created_at: string | null
+          game_id: string
+          id: string
+          round_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          game_id: string
+          id?: string
+          round_number: number
+        }
+        Update: {
+          created_at?: string | null
+          game_id?: string
+          id?: string
+          round_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rounds_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "user_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scores: {
+        Row: {
+          created_at: string | null
+          id: string
+          participant_id: string
+          points: number
+          round_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          participant_id: string
+          points?: number
+          round_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          participant_id?: string
+          points?: number
+          round_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scores_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_games: {
+        Row: {
+          concept_id: string
+          created_at: string | null
+          group_name: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          concept_id: string
+          created_at?: string | null
+          group_name: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          concept_id?: string
+          created_at?: string | null
+          group_name?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_games_concept_id_fkey"
+            columns: ["concept_id"]
+            isOneToOne: false
+            referencedRelation: "concepts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +379,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

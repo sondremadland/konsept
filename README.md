@@ -4,13 +4,16 @@ VenneSpill er en progressiv webapp (PWA) som tilbyr sosiale konkurranser og utfo
 
 ## 🚀 Funksjoner
 
-- 📱 **PWA-støtte** - Installer som app på mobil og desktop
+- 📱 **PWA-støtte** - Installer som app på mobil og desktop med offline-støtte
 - 🎮 **Flere spillkonsepter** - Turneringskveld, Konkurranseløp, Utfordringsbonanza
-- 🏆 **Live poengtavle** - Se rangeringer i sanntid
-- 👥 **Brukeradministrasjon** - Enkel pålogging med Google
+- 🏆 **Live poengtavle** - Se rangeringer i sanntid med automatiske oppdateringer
+- 🎯 **Runde-administrasjon** - Opprett runder og registrer poeng enkelt
+- 👥 **Brukeradministrasjon** - Enkel pålogging med e-post og Google
 - 🔧 **Admin-panel** - Administrer konsepter og bestillinger
 - 🔐 **Sikkerhet** - GDPR-samsvar med Supabase RLS
 - 🎨 **Fargerik design** - Leken og morsom brukeropplevelse
+- ✨ **Onboarding** - Veiledning for nye brukere
+- 📊 **Realtime updates** - Poengtavlen oppdateres automatisk når poeng registreres
 
 ## 🛠️ Teknologi
 
@@ -112,11 +115,20 @@ Design-system finnes i:
 
 ## 📱 PWA-funksjonalitet
 
-PWA-konfigurasjonen finnes i `vite.config.ts`. For å oppdatere:
+VenneSpill er en fullverdig Progressive Web App med følgende funksjoner:
 
-- **Manifest**: `vite.config.ts` -> `manifest`
-- **Ikoner**: Legg til i `public/`-mappen
+- **Offline-støtte**: Bruk appen selv uten internett
+- **Installasjon**: Installer på iOS, Android og desktop
+- **Service Worker**: Automatisk caching for rask lasting
+- **App-lignende opplevelse**: Fullskjerm uten nettleser-UI
+- **Auto-oppdatering**: Får alltid nyeste versjon automatisk
+
+PWA-konfigurasjonen finnes i `vite.config.ts`:
+- **Manifest**: Tilpasset app-info og ikoner
+- **Ikoner**: `public/icon-512.png` (512x512)
 - **Service Worker**: Håndteres automatisk av vite-plugin-pwa
+
+For å installere appen, besøk `/install`-siden eller bruk nettleserens installasjonsprompt.
 
 ## 🧪 Testing
 
@@ -177,6 +189,9 @@ Dette er et privat prosjekt. Kontakt oss for samarbeidsmuligheter.
 - [ ] Mulighet for å laste opp gruppebilder
 - [ ] Push-notifikasjoner for poengopdateringer
 - [ ] Flere spillkonsepter
+- [ ] Statistikk og historikk
+- [ ] Mulighet for å slette/redigere deltakere
+- [ ] Eksporter resultat som PDF
 
 ---
 
