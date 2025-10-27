@@ -8,15 +8,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trophy } from "lucide-react";
+import { ArrowLeft, Plus, Trophy, Target } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Participant {
   id: string;
   name: string;
   total_points: number;
+}
+
+interface Round {
+  id: string;
+  round_number: number;
+  created_at: string;
+}
+
+interface Score {
+  participant_id: string;
+  points: number;
 }
 
 const Game = () => {
@@ -25,13 +37,51 @@ const Game = () => {
   const { toast } = useToast();
   const [game, setGame] = useState<any>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [rounds, setRounds] = useState<Round[]>([]);
   const [newParticipant, setNewParticipant] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [participantDialogOpen, setParticipantDialogOpen] = useState(false);
+  const [roundDialogOpen, setRoundDialogOpen] = useState(false);
+  const [scoreDialogOpen, setScoreDialogOpen] = useState(false);
+  const [selectedRound, setSelectedRound] = useState<Round | null>(null);
+  const [scores, setScores] = useState<Record<string, number>>({});
 
   useEffect(() => {
     checkAuth();
     fetchGame();
     fetchParticipants();
+    fetchRounds();
+    
+    // Set up realtime subscription for participants
+    const channel = supabase
+      .channel(`game-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'participants',
+          filter: `game_id=eq.${id}`
+        },
+        () => {
+          fetchParticipants();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'scores'
+        },
+        () => {
+          fetchParticipants();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id]);
 
   const checkAuth = async () => {
@@ -57,6 +107,15 @@ const Game = () => {
     setParticipants(data || []);
   };
 
+  const fetchRounds = async () => {
+    const { data } = await db
+      .from("rounds")
+      .select("*")
+      .eq("game_id", id)
+      .order("round_number", { ascending: true });
+    setRounds(data || []);
+  };
+
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
     const { error } = await db.from("participants").insert({
@@ -69,12 +128,65 @@ const Game = () => {
     } else {
       toast({ title: "Deltaker lagt til! 🎉" });
       setNewParticipant("");
-      setDialogOpen(false);
-      fetchParticipants();
+      setParticipantDialogOpen(false);
     }
   };
 
-  if (!game) return null;
+  const handleCreateRound = async () => {
+    if (participants.length === 0) {
+      toast({ 
+        title: "Ingen deltakere", 
+        description: "Legg til deltakere før du oppretter runder",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    const nextRoundNumber = rounds.length + 1;
+    const { data, error } = await db
+      .from("rounds")
+      .insert({ game_id: id, round_number: nextRoundNumber })
+      .select()
+      .single();
+
+    if (error) {
+      toast({ title: "Feil", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `Runde ${nextRoundNumber} opprettet! 🎯` });
+      setRoundDialogOpen(false);
+      fetchRounds();
+    }
+  };
+
+  const handleOpenScoreDialog = (round: Round) => {
+    setSelectedRound(round);
+    const initialScores: Record<string, number> = {};
+    participants.forEach(p => {
+      initialScores[p.id] = 0;
+    });
+    setScores(initialScores);
+    setScoreDialogOpen(true);
+  };
+
+  const handleSubmitScores = async () => {
+    if (!selectedRound) return;
+
+    const scoreInserts = Object.entries(scores).map(([participantId, points]) => ({
+      round_id: selectedRound.id,
+      participant_id: participantId,
+      points: points || 0,
+    }));
+
+    const { error } = await db.from("scores").insert(scoreInserts);
+
+    if (error) {
+      toast({ title: "Feil", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Poeng registrert! ✨", description: "Poengtavlen er oppdatert" });
+      setScoreDialogOpen(false);
+      setSelectedRound(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,75 +202,153 @@ const Game = () => {
       </header>
 
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8 animate-fade-in">
             <h1 className="text-4xl font-bold mb-2">{game.group_name} 🎮</h1>
             <p className="text-muted-foreground">{game.concepts.name}</p>
           </div>
 
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Poengtavle 🏆</h2>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
+          <Tabs defaultValue="leaderboard" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="leaderboard">Poengtavle</TabsTrigger>
+              <TabsTrigger value="rounds">Runder</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="leaderboard" className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Live Poengtavle 🏆</h2>
+                <Dialog open={participantDialogOpen} onOpenChange={setParticipantDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-5 w-5" />
+                      Legg til deltaker
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Legg til deltaker</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleAddParticipant} className="space-y-4">
+                      <div>
+                        <Label>Navn</Label>
+                        <Input
+                          value={newParticipant}
+                          onChange={(e) => setNewParticipant(e.target.value)}
+                          placeholder="Navn på deltaker"
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full">Legg til</Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>Rangeringer</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {participants.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Ingen deltakere ennå. Legg til deltakere for å starte! 🚀
+                    </p>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-16">Plass</TableHead>
+                          <TableHead>Navn</TableHead>
+                          <TableHead className="text-right">Poeng</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {participants.map((participant, index) => (
+                          <TableRow key={participant.id} className="animate-fade-in">
+                            <TableCell className="font-bold">
+                              {index === 0 && <Trophy className="inline mr-1 h-5 w-5 text-yellow-500 animate-pulse" />}
+                              #{index + 1}
+                            </TableCell>
+                            <TableCell className="font-medium">{participant.name}</TableCell>
+                            <TableCell className="text-right font-bold text-lg gradient-hero bg-clip-text text-transparent">
+                              {participant.total_points}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="rounds" className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Runder 🎯</h2>
+                <Button onClick={handleCreateRound}>
                   <Plus className="mr-2 h-5 w-5" />
-                  Legg til deltaker
+                  Ny runde
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Legg til deltaker</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleAddParticipant} className="space-y-4">
-                  <div>
-                    <Label>Navn</Label>
+              </div>
+
+              <div className="grid gap-4">
+                {rounds.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8">
+                      <p className="text-center text-muted-foreground">
+                        Ingen runder ennå. Opprett den første runden for å starte! 🚀
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  rounds.map((round) => (
+                    <Card key={round.id} className="shadow-card hover-scale">
+                      <CardHeader>
+                        <div className="flex justify-between items-center">
+                          <CardTitle>Runde {round.round_number}</CardTitle>
+                          <Button onClick={() => handleOpenScoreDialog(round)}>
+                            <Target className="mr-2 h-5 w-5" />
+                            Registrer poeng
+                          </Button>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Score Input Dialog */}
+          <Dialog open={scoreDialogOpen} onOpenChange={setScoreDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Registrer poeng - Runde {selectedRound?.round_number}</DialogTitle>
+                <DialogDescription>
+                  Skriv inn poengene for hver deltaker i denne runden
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {participants.map((participant) => (
+                  <div key={participant.id} className="flex items-center gap-4">
+                    <Label className="w-1/2">{participant.name}</Label>
                     <Input
-                      value={newParticipant}
-                      onChange={(e) => setNewParticipant(e.target.value)}
-                      placeholder="Navn på deltaker"
-                      required
+                      type="number"
+                      min="0"
+                      value={scores[participant.id] || 0}
+                      onChange={(e) =>
+                        setScores({ ...scores, [participant.id]: parseInt(e.target.value) || 0 })
+                      }
+                      placeholder="Poeng"
                     />
                   </div>
-                  <Button type="submit" className="w-full">Legg til</Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle>Rangeringer</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {participants.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Ingen deltakere ennå. Legg til deltakere for å starte! 🚀
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-16">Plass</TableHead>
-                      <TableHead>Navn</TableHead>
-                      <TableHead className="text-right">Poeng</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {participants.map((participant, index) => (
-                      <TableRow key={participant.id}>
-                        <TableCell className="font-bold">
-                          {index === 0 && <Trophy className="inline mr-1 h-5 w-5 text-yellow-500" />}
-                          #{index + 1}
-                        </TableCell>
-                        <TableCell className="font-medium">{participant.name}</TableCell>
-                        <TableCell className="text-right font-bold">{participant.total_points}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                ))}
+              </div>
+              <Button onClick={handleSubmitScores} className="w-full" size="lg">
+                Lagre poeng
+              </Button>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
