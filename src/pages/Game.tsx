@@ -27,8 +27,14 @@ interface Round {
 }
 
 interface Score {
+  id: string;
+  round_id: string;
   participant_id: string;
   points: number;
+}
+
+interface ParticipantWithRoundScores extends Participant {
+  roundScores: Record<string, number>;
 }
 
 const Game = () => {
@@ -37,7 +43,9 @@ const Game = () => {
   const { toast } = useToast();
   const [game, setGame] = useState<any>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participantsWithScores, setParticipantsWithScores] = useState<ParticipantWithRoundScores[]>([]);
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [allScores, setAllScores] = useState<Score[]>([]);
   const [newParticipant, setNewParticipant] = useState("");
   const [participantDialogOpen, setParticipantDialogOpen] = useState(false);
   const [roundDialogOpen, setRoundDialogOpen] = useState(false);
@@ -51,8 +59,8 @@ const Game = () => {
     fetchGame();
     fetchParticipants();
     fetchRounds();
-    
-    // Set up realtime subscription for participants
+    fetchScores();
+
     const channel = supabase
       .channel(`game-${id}`)
       .on(
@@ -76,6 +84,19 @@ const Game = () => {
         },
         () => {
           fetchParticipants();
+          fetchScores();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'rounds',
+          filter: `game_id=eq.${id}`
+        },
+        () => {
+          fetchRounds();
         }
       )
       .subscribe();
@@ -84,6 +105,12 @@ const Game = () => {
       supabase.removeChannel(channel);
     };
   }, [id]);
+
+  useEffect(() => {
+    if (participants.length > 0 && rounds.length > 0) {
+      combineParticipantsWithScores();
+    }
+  }, [participants, rounds, allScores]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -116,6 +143,35 @@ const Game = () => {
       .eq("game_id", id)
       .order("round_number", { ascending: true });
     setRounds(data || []);
+  };
+
+  const fetchScores = async () => {
+    const { data } = await db
+      .from("scores")
+      .select("*, rounds!inner(game_id)")
+      .eq("rounds.game_id", id);
+    setAllScores(data || []);
+  };
+
+  const combineParticipantsWithScores = () => {
+    const participantsWithRoundScores: ParticipantWithRoundScores[] = participants.map(participant => {
+      const roundScores: Record<string, number> = {};
+
+      rounds.forEach(round => {
+        const scoreForRound = allScores.find(
+          score => score.participant_id === participant.id && score.round_id === round.id
+        );
+        roundScores[round.id] = scoreForRound ? scoreForRound.points : 0;
+      });
+
+      return {
+        ...participant,
+        roundScores
+      };
+    });
+
+    participantsWithRoundScores.sort((a, b) => b.total_points - a.total_points);
+    setParticipantsWithScores(participantsWithRoundScores);
   };
 
   const handleAddParticipant = async (e: React.FormEvent) => {
@@ -160,18 +216,31 @@ const Game = () => {
     }
   };
 
-  const handleOpenScoreDialog = (round: Round) => {
+  const handleOpenScoreDialog = async (round: Round) => {
     setSelectedRound(round);
     const initialScores: Record<string, number> = {};
+
+    const { data: existingScores } = await db
+      .from("scores")
+      .select("*")
+      .eq("round_id", round.id);
+
     participants.forEach(p => {
-      initialScores[p.id] = 0;
+      const existingScore = existingScores?.find((s: Score) => s.participant_id === p.id);
+      initialScores[p.id] = existingScore ? existingScore.points : 0;
     });
+
     setScores(initialScores);
     setScoreDialogOpen(true);
   };
 
   const handleSubmitScores = async () => {
     if (!selectedRound) return;
+
+    await db
+      .from("scores")
+      .delete()
+      .eq("round_id", selectedRound.id);
 
     const scoreInserts = Object.entries(scores).map(([participantId, points]) => ({
       round_id: selectedRound.id,
@@ -282,29 +351,41 @@ const Game = () => {
                       Ingen deltakere ennå. Legg til deltakere for å starte! 🚀
                     </p>
                   ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-16">Plass</TableHead>
-                          <TableHead>Navn</TableHead>
-                          <TableHead className="text-right">Poeng</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {participants.map((participant, index) => (
-                          <TableRow key={participant.id} className="animate-fade-in">
-                            <TableCell className="font-bold">
-                              {index === 0 && <Trophy className="inline mr-1 h-5 w-5 text-yellow-500 animate-pulse" />}
-                              #{index + 1}
-                            </TableCell>
-                            <TableCell className="font-medium">{participant.name}</TableCell>
-                            <TableCell className="text-right font-bold text-lg gradient-hero bg-clip-text text-transparent">
-                              {participant.total_points}
-                            </TableCell>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-16">Plass</TableHead>
+                            <TableHead>Navn</TableHead>
+                            {rounds.map((round) => (
+                              <TableHead key={round.id} className="text-center">
+                                R{round.round_number}
+                              </TableHead>
+                            ))}
+                            <TableHead className="text-right font-bold">Total</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {participantsWithScores.map((participant, index) => (
+                            <TableRow key={participant.id} className="animate-fade-in">
+                              <TableCell className="font-bold">
+                                {index === 0 && <Trophy className="inline mr-1 h-5 w-5 text-yellow-500 animate-pulse" />}
+                                #{index + 1}
+                              </TableCell>
+                              <TableCell className="font-medium">{participant.name}</TableCell>
+                              {rounds.map((round) => (
+                                <TableCell key={round.id} className="text-center">
+                                  {participant.roundScores[round.id] || 0}
+                                </TableCell>
+                              ))}
+                              <TableCell className="text-right font-bold text-lg gradient-hero bg-clip-text text-transparent">
+                                {participant.total_points}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </CardContent>
               </Card>
