@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      includeAssets: ["icon-512.png"],
       manifest: {
         name: "VenneSpill - Konkurranser for vennegjenger",
         short_name: "VenneSpill",
@@ -22,7 +23,9 @@ export default defineConfig(({ mode }) => ({
         theme_color: "#9333ea",
         background_color: "#faf5ff",
         display: "standalone",
+        orientation: "portrait",
         start_url: "/",
+        scope: "/",
         icons: [
           {
             src: "/icon-512.png",
@@ -42,8 +45,36 @@ export default defineConfig(({ mode }) => ({
             type: "image/png",
             purpose: "maskable"
           }
+        ],
+        shortcuts: [
+          {
+            name: "Mine Spill",
+            url: "/games",
+            description: "Se dine aktive spill"
+          },
+          {
+            name: "Poengtavle",
+            url: "/leaderboard",
+            description: "Se poengtavlen"
+          }
         ]
-      }
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}"],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/ecrkpqskqtsyghxfhwwz\.supabase\.co\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "supabase-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+            },
+          },
+        ],
+      },
     })
   ].filter(Boolean),
   resolve: {

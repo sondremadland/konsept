@@ -1,0 +1,43 @@
+{
+  "name": "VenneSpill - Konkurranser for vennegjenger",
+  "short_name": "VenneSpill",
+  "description": "Sosiale konkurranser og utfordringer for norske vennegjenger",
+  "theme_color": "#9333ea",
+  "background_color": "#faf5ff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mine Spill",
+      "url": "/games",
+      "description": "Se dine aktive spill"
+    },
+    {
+      "name": "Poengtavle",
+      "url": "/leaderboard",
+      "description": "Se poengtavlen"
+    }
+  ]
+}

@@ -9,27 +9,21 @@ import Auth from "./pages/Auth";
 import ConceptDetail from "./pages/ConceptDetail";
 import Dashboard from "./pages/Dashboard";
 import Game from "./pages/Game";
+import Games from "./pages/Games";
+import Leaderboard from "./pages/Leaderboard";
+import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Onboarding from "./pages/Onboarding";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
-import { logger } from "@/lib/logger";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      onError: (error) => {
-        logger.error('Query error', error as Error);
-      },
-    },
-    mutations: {
-      onError: (error) => {
-        logger.error('Mutation error', error as Error);
-      },
     },
   },
 });
@@ -46,6 +40,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/concept/:id" element={<ConceptDetail />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/game/:id" element={<Game />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/onboarding" element={<Onboarding />} />
