@@ -31,7 +31,7 @@ const Terms = () => {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                Ved å bruke VenneSpill godtar du disse brukervilkårene. Hvis du ikke aksepterer vilkårene, kan du ikke bruke tjenesten.
+                Ved å bruke Konsept godtar du disse brukervilkårene. Hvis du ikke aksepterer vilkårene, kan du ikke bruke tjenesten.
               </p>
             </CardContent>
           </Card>
@@ -42,7 +42,7 @@ const Terms = () => {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                VenneSpill tilbyr digitale konkurransekonsepter for vennegjenger. Tjenesten inkluderer:
+                Konsept tilbyr digitale konkurransekonsepter for vennegjenger. Tjenesten inkluderer:
               </p>
               <ul>
                 <li>Tilgang til ulike spillkonsepter</li>
@@ -59,7 +59,7 @@ const Terms = () => {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                For å bruke VenneSpill må du opprette en brukerkonto. Du er ansvarlig for:
+                For å bruke Konsept må du opprette en brukerkonto. Du er ansvarlig for:
               </p>
               <ul>
                 <li>Å holde din påloggingsinformasjon konfidensiell</li>
@@ -98,7 +98,7 @@ const Terms = () => {
                 du har bekreftet å ha kjennskap til at du da mister angreretten.
               </p>
               <p>
-                Ved kjøp av konsepter fra VenneSpill får du umiddelbar tilgang, og angrerett 
+                Ved kjøp av konsepter fra Konsept får du umiddelbar tilgang, og angrerett 
                 gjelder derfor ikke hvis du har startet å bruke konseptet.
               </p>
             </CardContent>
@@ -134,7 +134,7 @@ const Terms = () => {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                VenneSpill leveres "som den er". Vi:
+                Konsept leveres "som den er". Vi:
               </p>
               <ul>
                 <li>Garanterer ikke at tjenesten alltid vil være tilgjengelig</li>
@@ -168,7 +168,7 @@ const Terms = () => {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                Vi kan suspendere eller avslutte din tilgang til VenneSpill hvis du:
+                Vi kan suspendere eller avslutte din tilgang til Konsept hvis du:
               </p>
               <ul>
                 <li>Bryter disse vilkårene</li>
@@ -213,8 +213,8 @@ const Terms = () => {
                 For spørsmål om brukervilkår:
               </p>
               <p>
-                <strong>E-post:</strong> support@vennespill.no<br />
-                <strong>Adresse:</strong> VenneSpill AS, Norge
+                <strong>E-post:</strong> support@konsept.no<br />
+                <strong>Adresse:</strong> Konsept AS, Norge
               </p>
             </CardContent>
           </Card>

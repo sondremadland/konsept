@@ -50,7 +50,7 @@ const Install = () => {
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         <div className="text-center mb-12 animate-fade-in">
           <Download className="h-16 w-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl font-bold mb-4">Installer VenneSpill 📱</h1>
+          <h1 className="text-4xl font-bold mb-4">Installer Konsept 📱</h1>
           <p className="text-muted-foreground text-lg">
             Få raskere tilgang og bruk appen offline ved å installere den på enheten din
           </p>
@@ -61,7 +61,7 @@ const Install = () => {
             <CardHeader>
               <CardTitle>Klar for installasjon! 🎉</CardTitle>
               <CardDescription>
-                Du kan installere VenneSpill direkte på enheten din nå
+                Du kan installere Konsept direkte på enheten din nå
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -83,7 +83,7 @@ const Install = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                <li>Åpne VenneSpill i Safari-nettleseren</li>
+                <li>Åpne Konsept i Safari-nettleseren</li>
                 <li>Trykk på Del-ikonet (firkant med pil opp) nederst</li>
                 <li>Scroll ned og velg "Legg til på Hjem-skjerm"</li>
                 <li>Trykk "Legg til" i øvre høyre hjørne</li>
@@ -101,7 +101,7 @@ const Install = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                <li>Åpne VenneSpill i Chrome</li>
+                <li>Åpne Konsept i Chrome</li>
                 <li>Trykk på menyikonet (tre prikker) øverst til høyre</li>
                 <li>Velg "Installer app" eller "Legg til på startskjerm"</li>
                 <li>Bekreft installasjonen</li>
@@ -119,7 +119,7 @@ const Install = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                <li>Åpne VenneSpill i Chrome, Edge, eller Safari</li>
+                <li>Åpne Konsept i Chrome, Edge, eller Safari</li>
                 <li>Se etter et installasjonsikon i adresselinjen (pluss-ikon eller nedlastingsikon)</li>
                 <li>Klikk på ikonet og velg "Installer"</li>
                 <li>Appen åpnes nå som et eget vindu! 🎉</li>

@@ -113,7 +113,7 @@ const Auth = () => {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-4">
             <Trophy className="h-12 w-12 text-white" />
-            <span className="text-4xl font-bold text-white">VenneSpill</span>
+            <span className="text-4xl font-bold text-white">Konsept</span>
           </Link>
           <p className="text-white/90 text-lg">Logg inn eller opprett konto</p>
         </div>

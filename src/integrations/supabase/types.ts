@@ -122,18 +122,21 @@ export type Database = {
           created_at: string | null
           game_id: string
           id: string
+          round_name: string | null
           round_number: number
         }
         Insert: {
           created_at?: string | null
           game_id: string
           id?: string
+          round_name?: string | null
           round_number: number
         }
         Update: {
           created_at?: string | null
           game_id?: string
           id?: string
+          round_name?: string | null
           round_number?: number
         }
         Relationships: [

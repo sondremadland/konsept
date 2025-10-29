@@ -11,7 +11,7 @@ const Onboarding = () => {
   const steps = [
     {
       icon: Trophy,
-      title: "Velkommen til VenneSpill! 🎉",
+      title: "Velkommen til Konsept! 🎉",
       description: "Her kan du kjøpe og spille sosiale konkurranser med vennegjengen din. La oss vise deg hvordan det fungerer!",
     },
     {

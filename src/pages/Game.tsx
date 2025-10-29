@@ -23,6 +23,7 @@ interface Participant {
 interface Round {
   id: string;
   round_number: number;
+  round_name: string | null;
   created_at: string;
 }
 
@@ -53,6 +54,8 @@ const Game = () => {
   const [selectedRound, setSelectedRound] = useState<Round | null>(null);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
+  const [editingRoundName, setEditingRoundName] = useState("");
 
   useEffect(() => {
     checkAuth();
@@ -359,7 +362,7 @@ const Game = () => {
                             <TableHead>Navn</TableHead>
                             {rounds.map((round) => (
                               <TableHead key={round.id} className="text-center">
-                                R{round.round_number}
+                                {round.round_name || `R${round.round_number}`}
                               </TableHead>
                             ))}
                             <TableHead className="text-right font-bold">Total</TableHead>
@@ -378,7 +381,7 @@ const Game = () => {
                                   {participant.roundScores[round.id] || 0}
                                 </TableCell>
                               ))}
-                              <TableCell className="text-right font-bold text-lg gradient-hero bg-clip-text text-transparent">
+                              <TableCell className="text-right font-bold text-lg text-primary">
                                 {participant.total_points}
                               </TableCell>
                             </TableRow>
@@ -414,11 +417,51 @@ const Game = () => {
                     <Card key={round.id} className="shadow-card hover-scale">
                       <CardHeader>
                         <div className="flex justify-between items-center">
-                          <CardTitle>Runde {round.round_number}</CardTitle>
-                          <Button onClick={() => handleOpenScoreDialog(round)}>
-                            <Target className="mr-2 h-5 w-5" />
-                            Registrer poeng
-                          </Button>
+                          {editingRoundId === round.id ? (
+                            <div className="flex gap-2 flex-1">
+                              <Input
+                                value={editingRoundName}
+                                onChange={(e) => setEditingRoundName(e.target.value)}
+                                placeholder="Rundenavn"
+                                className="flex-1"
+                              />
+                              <Button
+                                onClick={async () => {
+                                  await db
+                                    .from("rounds")
+                                    .update({ round_name: editingRoundName })
+                                    .eq("id", round.id);
+                                  setEditingRoundId(null);
+                                  fetchRounds();
+                                  toast({ title: "Rundenavn oppdatert! ✨" });
+                                }}
+                              >
+                                Lagre
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                onClick={() => setEditingRoundId(null)}
+                              >
+                                Avbryt
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <CardTitle 
+                                onClick={() => {
+                                  setEditingRoundId(round.id);
+                                  setEditingRoundName(round.round_name || `Runde ${round.round_number}`);
+                                }}
+                                className="cursor-pointer hover:text-primary transition-colors"
+                              >
+                                {round.round_name || `Runde ${round.round_number}`}
+                              </CardTitle>
+                              <Button onClick={() => handleOpenScoreDialog(round)}>
+                                <Target className="mr-2 h-5 w-5" />
+                                Registrer poeng
+                              </Button>
+                            </>
+                          )}
                         </div>
                       </CardHeader>
                     </Card>
@@ -432,7 +475,7 @@ const Game = () => {
           <Dialog open={scoreDialogOpen} onOpenChange={setScoreDialogOpen}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Registrer poeng - Runde {selectedRound?.round_number}</DialogTitle>
+                <DialogTitle>Registrer poeng - {selectedRound?.round_name || `Runde ${selectedRound?.round_number}`}</DialogTitle>
                 <DialogDescription>
                   Skriv inn poengene for hver deltaker i denne runden
                 </DialogDescription>

@@ -74,7 +74,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
             <Trophy className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold gradient-hero bg-clip-text text-transparent">VenneSpill</span>
+            <span className="text-2xl font-bold gradient-hero bg-clip-text text-transparent">Konsept</span>
           </Link>
           <nav className="flex gap-4 items-center">
             {user ? (
@@ -191,7 +191,7 @@ const Index = () => {
                   <CardDescription>{concept.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold gradient-hero bg-clip-text text-transparent">
+                  <p className="text-3xl font-bold text-primary">
                     {concept.price} kr
                   </p>
                 </CardContent>
@@ -228,7 +228,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-muted-foreground">
-              © 2025 VenneSpill - Norges morsomste konkurranser for vennegjenger 🇳🇴
+              © 2025 Konsept - Norges morsomste konkurranser for vennegjenger 🇳🇴
             </p>
             <div className="flex gap-6">
               <Link to="/install" className="text-muted-foreground hover:text-primary transition-colors">

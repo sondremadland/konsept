@@ -52,7 +52,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
       <aside className="hidden md:block fixed left-0 top-0 h-full w-64 border-r bg-card p-4">
         <Link to="/" className="flex items-center gap-2 mb-8 p-2">
           <Trophy className="h-8 w-8 text-primary" />
-          <span className="text-2xl font-bold">VenneSpill</span>
+          <span className="text-2xl font-bold">Konsept</span>
         </Link>
         
         <nav className="space-y-2">

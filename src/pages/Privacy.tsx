@@ -31,7 +31,7 @@ const Privacy = () => {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                VenneSpill samler inn følgende informasjon når du bruker vår tjeneste:
+                Konsept samler inn følgende informasjon når du bruker vår tjeneste:
               </p>
               <ul>
                 <li>E-postadresse (for innlogging og kommunikasjon)</li>
@@ -89,7 +89,7 @@ const Privacy = () => {
                 <li>Rett til dataportabilitet</li>
               </ul>
               <p>
-                For å utøve dine rettigheter, kontakt oss på: <strong>privacy@vennespill.no</strong>
+                For å utøve dine rettigheter, kontakt oss på: <strong>privacy@konsept.no</strong>
               </p>
             </CardContent>
           </Card>
@@ -116,7 +116,7 @@ const Privacy = () => {
             </CardHeader>
             <CardContent className="prose prose-slate dark:prose-invert max-w-none">
               <p>
-                VenneSpill bruker minimalt med informasjonskapsler for å:
+                Konsept bruker minimalt med informasjonskapsler for å:
               </p>
               <ul>
                 <li>Holde deg innlogget</li>
@@ -137,8 +137,8 @@ const Privacy = () => {
                 Hvis du har spørsmål om personvern, kontakt oss:
               </p>
               <p>
-                <strong>E-post:</strong> privacy@vennespill.no<br />
-                <strong>Adresse:</strong> VenneSpill AS, Norge
+                <strong>E-post:</strong> privacy@konsept.no<br />
+                <strong>Adresse:</strong> Konsept AS, Norge
               </p>
             </CardContent>
           </Card>

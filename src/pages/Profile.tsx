@@ -51,7 +51,7 @@ const Profile = () => {
     await supabase.auth.signOut();
     toast({
       title: "Logget ut",
-      description: "Du er nå logget ut av VenneSpill",
+      description: "Du er nå logget ut av Konsept",
     });
     navigate("/");
   };
