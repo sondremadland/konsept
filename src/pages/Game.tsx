@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trophy, Target } from "lucide-react";
+import { ArrowLeft, Plus, Trophy, Target, ChevronDown, ChevronUp, UserPlus, Search } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -54,8 +54,13 @@ const Game = () => {
   const [selectedRound, setSelectedRound] = useState<Round | null>(null);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [expandedRounds, setExpandedRounds] = useState<Set<string>>(new Set());
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [editingRoundName, setEditingRoundName] = useState("");
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -118,6 +123,7 @@ const Game = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) navigate("/auth");
+    else setCurrentUserId(session.user.id);
   };
 
   const fetchGame = async () => {
@@ -175,6 +181,59 @@ const Game = () => {
 
     participantsWithRoundScores.sort((a, b) => b.total_points - a.total_points);
     setParticipantsWithScores(participantsWithRoundScores);
+  };
+
+  const toggleRoundExpanded = (roundId: string) => {
+    setExpandedRounds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(roundId)) {
+        newSet.delete(roundId);
+      } else {
+        newSet.add(roundId);
+      }
+      return newSet;
+    });
+  };
+
+  const getRoundScores = (roundId: string) => {
+    return participantsWithScores.map(p => ({
+      name: p.name,
+      points: p.roundScores[roundId] || 0
+    })).sort((a, b) => b.points - a.points);
+  };
+
+  const handleSearchUsers = async () => {
+    if (!searchEmail.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const { data } = await db
+      .from("user_profiles")
+      .select("*")
+      .ilike("email", `%${searchEmail}%`)
+      .limit(5);
+
+    setSearchResults(data || []);
+  };
+
+  const handleInviteUser = async (userId: string, email: string) => {
+    const { error } = await db.from("game_invitations").insert({
+      game_id: id,
+      inviter_id: currentUserId,
+      invitee_email: email,
+      invitee_id: userId,
+      status: "pending"
+    });
+
+    if (error) {
+      toast({ title: "Feil", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Invitasjon sendt! 📧", description: `${email} har fått invitasjon` });
+      setSearchEmail("");
+      setSearchResults([]);
+      setInviteDialogOpen(false);
+    }
   };
 
   const handleAddParticipant = async (e: React.FormEvent) => {
@@ -317,31 +376,82 @@ const Game = () => {
             <TabsContent value="leaderboard" className="animate-fade-in">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Live Poengtavle 🏆</h2>
-                <Dialog open={participantDialogOpen} onOpenChange={setParticipantDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="mr-2 h-5 w-5" />
-                      Legg til deltaker
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Legg til deltaker</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleAddParticipant} className="space-y-4">
-                      <div>
-                        <Label>Navn</Label>
-                        <Input
-                          value={newParticipant}
-                          onChange={(e) => setNewParticipant(e.target.value)}
-                          placeholder="Navn på deltaker"
-                          required
-                        />
+                <div className="flex gap-2">
+                  <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <UserPlus className="mr-2 h-5 w-5" />
+                        Inviter bruker
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Inviter bruker til spillet</DialogTitle>
+                        <DialogDescription>
+                          Søk etter brukere ved e-post og send dem invitasjon
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="flex gap-2">
+                          <Input
+                            value={searchEmail}
+                            onChange={(e) => setSearchEmail(e.target.value)}
+                            placeholder="Søk etter e-post..."
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()}
+                          />
+                          <Button onClick={handleSearchUsers}>
+                            <Search className="h-5 w-5" />
+                          </Button>
+                        </div>
+                        {searchResults.length > 0 && (
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {searchResults.map((user) => (
+                              <Card key={user.id}>
+                                <CardContent className="py-3 flex justify-between items-center">
+                                  <div>
+                                    <p className="font-medium">{user.display_name}</p>
+                                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleInviteUser(user.id, user.email)}
+                                  >
+                                    Inviter
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <Button type="submit" className="w-full">Legg til</Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog open={participantDialogOpen} onOpenChange={setParticipantDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="mr-2 h-5 w-5" />
+                        Legg til deltaker
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Legg til deltaker</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleAddParticipant} className="space-y-4">
+                        <div>
+                          <Label>Navn</Label>
+                          <Input
+                            value={newParticipant}
+                            onChange={(e) => setNewParticipant(e.target.value)}
+                            placeholder="Navn på deltaker"
+                            required
+                          />
+                        </div>
+                        <Button type="submit" className="w-full">Legg til</Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               <Card className="shadow-card">
@@ -414,40 +524,53 @@ const Game = () => {
                   </Card>
                 ) : (
                   rounds.map((round) => (
-                    <Card key={round.id} className="shadow-card hover-scale">
+                    <Card key={round.id} className="shadow-card">
                       <CardHeader>
                         <div className="flex justify-between items-center">
-                          {editingRoundId === round.id ? (
-                            <div className="flex gap-2 flex-1">
-                              <Input
-                                value={editingRoundName}
-                                onChange={(e) => setEditingRoundName(e.target.value)}
-                                placeholder="Rundenavn"
-                                className="flex-1"
-                              />
-                              <Button
-                                onClick={async () => {
-                                  await db
-                                    .from("rounds")
-                                    .update({ round_name: editingRoundName })
-                                    .eq("id", round.id);
-                                  setEditingRoundId(null);
-                                  fetchRounds();
-                                  toast({ title: "Rundenavn oppdatert! ✨" });
-                                }}
-                              >
-                                Lagre
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                onClick={() => setEditingRoundId(null)}
-                              >
-                                Avbryt
-                              </Button>
-                            </div>
-                          ) : (
-                            <>
-                              <CardTitle 
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleRoundExpanded(round.id)}
+                            >
+                              {expandedRounds.has(round.id) ? (
+                                <ChevronUp className="h-5 w-5" />
+                              ) : (
+                                <ChevronDown className="h-5 w-5" />
+                              )}
+                            </Button>
+                            {editingRoundId === round.id ? (
+                              <div className="flex gap-2">
+                                <Input
+                                  value={editingRoundName}
+                                  onChange={(e) => setEditingRoundName(e.target.value)}
+                                  placeholder="Rundenavn"
+                                  className="w-48"
+                                />
+                                <Button
+                                  size="sm"
+                                  onClick={async () => {
+                                    await db
+                                      .from("rounds")
+                                      .update({ round_name: editingRoundName })
+                                      .eq("id", round.id);
+                                    setEditingRoundId(null);
+                                    fetchRounds();
+                                    toast({ title: "Rundenavn oppdatert! ✨" });
+                                  }}
+                                >
+                                  Lagre
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setEditingRoundId(null)}
+                                >
+                                  Avbryt
+                                </Button>
+                              </div>
+                            ) : (
+                              <CardTitle
                                 onClick={() => {
                                   setEditingRoundId(round.id);
                                   setEditingRoundName(round.round_name || `Runde ${round.round_number}`);
@@ -456,14 +579,36 @@ const Game = () => {
                               >
                                 {round.round_name || `Runde ${round.round_number}`}
                               </CardTitle>
-                              <Button onClick={() => handleOpenScoreDialog(round)}>
-                                <Target className="mr-2 h-5 w-5" />
-                                Registrer poeng
-                              </Button>
-                            </>
-                          )}
+                            )}
+                          </div>
+                          <Button onClick={() => handleOpenScoreDialog(round)}>
+                            <Target className="mr-2 h-5 w-5" />
+                            Registrer poeng
+                          </Button>
                         </div>
                       </CardHeader>
+                      {expandedRounds.has(round.id) && (
+                        <CardContent>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Deltaker</TableHead>
+                                <TableHead className="text-right">Poeng</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {getRoundScores(round.id).map((score, index) => (
+                                <TableRow key={index}>
+                                  <TableCell>{score.name}</TableCell>
+                                  <TableCell className="text-right font-bold">
+                                    {score.points}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </CardContent>
+                      )}
                     </Card>
                   ))
                 )}

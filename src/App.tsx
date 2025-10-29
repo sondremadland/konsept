@@ -17,6 +17,7 @@ import Onboarding from "./pages/Onboarding";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Install from "./pages/Install";
+import Invitations from "./pages/Invitations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/game/:id" element={<Game />} />
+            <Route path="/invitations" element={<Invitations />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/privacy" element={<Privacy />} />

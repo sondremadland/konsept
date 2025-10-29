@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Trophy, User, Gamepad2 } from "lucide-react";
+import { Home, Trophy, User, Gamepad2, Mail } from "lucide-react";
 import { ReactNode } from "react";
 
 interface MobileLayoutProps {
@@ -12,6 +12,7 @@ const MobileLayout = ({ children }: MobileLayoutProps) => {
   const navItems = [
     { path: "/dashboard", icon: Home, label: "Hjem" },
     { path: "/games", icon: Gamepad2, label: "Mine Konsept" },
+    { path: "/invitations", icon: Mail, label: "Invitasjoner" },
     { path: "/leaderboard", icon: Trophy, label: "Tabell" },
     { path: "/profile", icon: User, label: "Profil" },
   ];
