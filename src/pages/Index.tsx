@@ -74,7 +74,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
             <Trophy className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold gradient-hero bg-clip-text text-transparent">Konsept</span>
+            <span className="text-2xl font-bold text-primary">Konsept</span>
           </Link>
           <nav className="flex gap-4 items-center">
             {user ? (
