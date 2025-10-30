@@ -177,7 +177,7 @@ const ConceptDetail = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-4xl font-bold gradient-hero bg-clip-text text-transparent">
+                <p className="text-4xl font-bold text-primary">
                   {concept.price} kr
                 </p>
               </CardContent>
