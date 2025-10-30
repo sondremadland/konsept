@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Gamepad2, Users, TrendingUp } from "lucide-react";
+import { Trophy, Gamepad2, Users, TrendingUp, Mail } from "lucide-react";
 import MobileLayout from "@/components/MobileLayout";
 
 const db = supabase as any;
@@ -15,6 +15,7 @@ const Dashboard = () => {
     totalGames: 0,
     totalParticipants: 0,
     recentGames: [] as any[],
+    pendingInvitations: 0,
   });
 
   useEffect(() => {
@@ -58,10 +59,22 @@ const Dashboard = () => {
       }
     }
 
+    // Get current user email
+    const { data: { session } } = await supabase.auth.getSession();
+    const userEmail = session?.user?.email || "";
+
+    // Fetch pending invitations
+    const { data: invitations } = await db
+      .from("game_invitations")
+      .select("*")
+      .eq("invitee_email", userEmail)
+      .eq("status", "pending");
+
     setStats({
       totalGames: games?.length || 0,
       totalParticipants,
       recentGames: games || [],
+      pendingInvitations: invitations?.length || 0,
     });
   };
 
@@ -155,6 +168,17 @@ const Dashboard = () => {
                   <Link to="/games">
                     <Gamepad2 className="mr-2 h-4 w-4" />
                     Mine Konsept
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/invitations">
+                    <Mail className="mr-2 h-4 w-4" />
+                    Mine invitasjoner
+                    {stats.pendingInvitations > 0 && (
+                      <span className="ml-auto bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
+                        {stats.pendingInvitations}
+                      </span>
+                    )}
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full justify-start">

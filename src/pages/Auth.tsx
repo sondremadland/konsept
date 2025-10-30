@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,30 +12,40 @@ import { Link } from "react-router-dom";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const inviteGameId = searchParams.get("invite");
 
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard");
+        if (inviteGameId) {
+          navigate("/invitations");
+        } else {
+          navigate("/dashboard");
+        }
       }
     });
-  }, [navigate]);
+  }, [navigate, inviteGameId]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      const redirectUrl = inviteGameId 
+        ? `${window.location.origin}/invitations`
+        : `${window.location.origin}/dashboard`;
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: redirectUrl,
         },
       });
 
@@ -43,7 +53,9 @@ const Auth = () => {
 
       toast({
         title: "Suksess! 🎉",
-        description: "Kontoen din er opprettet. Du kan nå logge inn.",
+        description: inviteGameId 
+          ? "Kontoen din er opprettet. Sjekk dine invitasjoner." 
+          : "Kontoen din er opprettet. Du kan nå logge inn.",
       });
       
       // Auto login after signup
@@ -76,7 +88,11 @@ const Auth = () => {
         description: "Du er nå logget inn.",
       });
       
-      navigate("/dashboard");
+      if (inviteGameId) {
+        navigate("/invitations");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast({
         title: "Kunne ikke logge inn",
@@ -90,10 +106,14 @@ const Auth = () => {
 
   const handleGoogleLogin = async () => {
     try {
+      const redirectUrl = inviteGameId 
+        ? `${window.location.origin}/invitations`
+        : `${window.location.origin}/dashboard`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: redirectUrl,
         },
       });
 

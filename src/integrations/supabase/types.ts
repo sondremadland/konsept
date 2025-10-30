@@ -47,6 +47,47 @@ export type Database = {
         }
         Relationships: []
       }
+      game_invitations: {
+        Row: {
+          created_at: string | null
+          game_id: string
+          id: string
+          invitee_email: string
+          invitee_id: string | null
+          inviter_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          game_id: string
+          id?: string
+          invitee_email: string
+          invitee_id?: string | null
+          inviter_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          game_id?: string
+          id?: string
+          invitee_email?: string
+          invitee_id?: string | null
+          inviter_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_invitations_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "user_games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           concept_id: string
@@ -92,6 +133,7 @@ export type Database = {
           id: string
           name: string
           total_points: number | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -99,6 +141,7 @@ export type Database = {
           id?: string
           name: string
           total_points?: number | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -106,6 +149,7 @@ export type Database = {
           id?: string
           name?: string
           total_points?: number | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -219,6 +263,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

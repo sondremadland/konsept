@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trophy, Target, ChevronDown, ChevronUp, UserPlus, Search } from "lucide-react";
+import { ArrowLeft, Plus, Trophy, Target, ChevronDown, ChevronUp, UserPlus, Search, Link as LinkIcon, Copy, Mail } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -58,9 +58,11 @@ const Game = () => {
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const [editingRoundName, setEditingRoundName] = useState("");
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [searchEmail, setSearchEmail] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState("");
+  const [showInviteLink, setShowInviteLink] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -202,8 +204,19 @@ const Game = () => {
     })).sort((a, b) => b.points - a.points);
   };
 
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const delaySearch = setTimeout(() => {
+        handleSearchUsers();
+      }, 300);
+      return () => clearTimeout(delaySearch);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery]);
+
   const handleSearchUsers = async () => {
-    if (!searchEmail.trim()) {
+    if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
     }
@@ -211,13 +224,42 @@ const Game = () => {
     const { data } = await db
       .from("user_profiles")
       .select("*")
-      .ilike("email", `%${searchEmail}%`)
-      .limit(5);
+      .or(`email.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
+      .limit(10);
 
     setSearchResults(data || []);
   };
 
-  const handleInviteUser = async (userId: string, email: string) => {
+  const generateInviteLink = () => {
+    const baseUrl = window.location.origin;
+    const link = `${baseUrl}/auth?invite=${id}`;
+    setInviteLink(link);
+    setShowInviteLink(true);
+  };
+
+  const copyInviteLink = () => {
+    navigator.clipboard.writeText(inviteLink);
+    toast({ title: "Lenke kopiert! 📋", description: "Invitasjonslenken er kopiert til utklippstavlen" });
+  };
+
+  const handleInviteUser = async (userId: string, email: string, displayName: string) => {
+    // Check if already invited
+    const { data: existing } = await db
+      .from("game_invitations")
+      .select("*")
+      .eq("game_id", id)
+      .eq("invitee_id", userId)
+      .single();
+
+    if (existing) {
+      toast({ 
+        title: "Allerede invitert", 
+        description: `${displayName} har allerede fått invitasjon`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const { error } = await db.from("game_invitations").insert({
       game_id: id,
       inviter_id: currentUserId,
@@ -229,25 +271,42 @@ const Game = () => {
     if (error) {
       toast({ title: "Feil", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Invitasjon sendt! 📧", description: `${email} har fått invitasjon` });
-      setSearchEmail("");
+      toast({ title: "Invitasjon sendt! 📧", description: `${displayName} har fått invitasjon` });
+      setSearchQuery("");
       setSearchResults([]);
-      setInviteDialogOpen(false);
     }
   };
 
-  const handleAddParticipant = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddParticipantFromAcceptedInvitation = async (userId: string, displayName: string) => {
+    // Check if user already is a participant
+    const { data: existingParticipant } = await db
+      .from("participants")
+      .select("*")
+      .eq("game_id", id)
+      .eq("user_id", userId)
+      .single();
+
+    if (existingParticipant) {
+      toast({ 
+        title: "Allerede deltaker", 
+        description: `${displayName} er allerede med i spillet`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const { error } = await db.from("participants").insert({
       game_id: id,
-      name: newParticipant,
+      name: displayName,
+      user_id: userId,
     });
 
     if (error) {
       toast({ title: "Feil", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Deltaker lagt til! 🎉" });
-      setNewParticipant("");
+      toast({ title: "Deltaker lagt til! 🎉", description: `${displayName} er nå med i spillet` });
+      setSearchQuery("");
+      setSearchResults([]);
       setParticipantDialogOpen(false);
     }
   };
@@ -381,51 +440,98 @@ const Game = () => {
                     <DialogTrigger asChild>
                       <Button variant="outline">
                         <UserPlus className="mr-2 h-5 w-5" />
-                        Inviter bruker
+                        Inviter
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-2xl">
                       <DialogHeader>
-                        <DialogTitle>Inviter bruker til spillet</DialogTitle>
+                        <DialogTitle>Inviter brukere til spillet</DialogTitle>
                         <DialogDescription>
-                          Søk etter brukere ved e-post og send dem invitasjon
+                          Send invitasjonslenke eller søk etter eksisterende brukere
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="flex gap-2">
-                          <Input
-                            value={searchEmail}
-                            onChange={(e) => setSearchEmail(e.target.value)}
-                            placeholder="Søk etter e-post..."
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()}
-                          />
-                          <Button onClick={handleSearchUsers}>
-                            <Search className="h-5 w-5" />
-                          </Button>
-                        </div>
-                        {searchResults.length > 0 && (
-                          <div className="space-y-2 max-h-64 overflow-y-auto">
-                            {searchResults.map((user) => (
-                              <Card key={user.id}>
-                                <CardContent className="py-3 flex justify-between items-center">
-                                  <div>
-                                    <p className="font-medium">{user.display_name}</p>
-                                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleInviteUser(user.id, user.email)}
-                                  >
-                                    Inviter
+                      
+                      <Tabs defaultValue="link" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="link">
+                            <LinkIcon className="mr-2 h-4 w-4" />
+                            Invitasjonslenke
+                          </TabsTrigger>
+                          <TabsTrigger value="search">
+                            <Search className="mr-2 h-4 w-4" />
+                            Søk brukere
+                          </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="link" className="space-y-4">
+                          <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                            <p className="text-sm text-muted-foreground">
+                              Del denne lenken med personer du vil invitere. De kan registrere seg og bli med i spillet.
+                            </p>
+                            {!showInviteLink ? (
+                              <Button onClick={generateInviteLink} className="w-full">
+                                <LinkIcon className="mr-2 h-5 w-5" />
+                                Generer invitasjonslenke
+                              </Button>
+                            ) : (
+                              <div className="space-y-2">
+                                <div className="flex gap-2">
+                                  <Input value={inviteLink} readOnly className="flex-1" />
+                                  <Button onClick={copyInviteLink} variant="outline">
+                                    <Copy className="h-5 w-5" />
                                   </Button>
-                                </CardContent>
-                              </Card>
-                            ))}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  💡 Tips: Del denne lenken via e-post, melding eller sosiale medier
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        </TabsContent>
+
+                        <TabsContent value="search" className="space-y-4">
+                          <div>
+                            <Input
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              placeholder="Søk etter navn eller e-post..."
+                              className="w-full"
+                            />
+                          </div>
+                          {searchResults.length > 0 ? (
+                            <div className="space-y-2 max-h-80 overflow-y-auto">
+                              {searchResults.map((user) => (
+                                <Card key={user.id}>
+                                  <CardContent className="py-3 flex justify-between items-center">
+                                    <div>
+                                      <p className="font-medium">{user.display_name}</p>
+                                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleInviteUser(user.id, user.email, user.display_name)}
+                                    >
+                                      <Mail className="mr-2 h-4 w-4" />
+                                      Inviter
+                                    </Button>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          ) : searchQuery.trim() ? (
+                            <p className="text-center text-muted-foreground py-8">
+                              Ingen brukere funnet
+                            </p>
+                          ) : (
+                            <p className="text-center text-muted-foreground py-8">
+                              Begynn å søke for å finne brukere
+                            </p>
+                          )}
+                        </TabsContent>
+                      </Tabs>
                     </DialogContent>
                   </Dialog>
+
                   <Dialog open={participantDialogOpen} onOpenChange={setParticipantDialogOpen}>
                     <DialogTrigger asChild>
                       <Button>
@@ -436,19 +542,46 @@ const Game = () => {
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Legg til deltaker</DialogTitle>
+                        <DialogDescription>
+                          Søk etter brukere som har akseptert invitasjon
+                        </DialogDescription>
                       </DialogHeader>
-                      <form onSubmit={handleAddParticipant} className="space-y-4">
-                        <div>
-                          <Label>Navn</Label>
-                          <Input
-                            value={newParticipant}
-                            onChange={(e) => setNewParticipant(e.target.value)}
-                            placeholder="Navn på deltaker"
-                            required
-                          />
-                        </div>
-                        <Button type="submit" className="w-full">Legg til</Button>
-                      </form>
+                      <div className="space-y-4">
+                        <Input
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Søk etter navn eller e-post..."
+                          className="w-full"
+                        />
+                        {searchResults.length > 0 ? (
+                          <div className="space-y-2 max-h-80 overflow-y-auto">
+                            {searchResults.map((user) => (
+                              <Card key={user.id}>
+                                <CardContent className="py-3 flex justify-between items-center">
+                                  <div>
+                                    <p className="font-medium">{user.display_name}</p>
+                                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleAddParticipantFromAcceptedInvitation(user.id, user.display_name)}
+                                  >
+                                    Legg til
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : searchQuery.trim() ? (
+                          <p className="text-center text-muted-foreground py-8">
+                            Ingen brukere funnet
+                          </p>
+                        ) : (
+                          <p className="text-center text-muted-foreground py-8">
+                            Søk etter brukere for å legge dem til som deltakere
+                          </p>
+                        )}
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </div>
