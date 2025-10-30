@@ -84,6 +84,7 @@ const Invitations = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    // Update invitation status
     const { error: updateError } = await db
       .from("game_invitations")
       .update({
@@ -98,26 +99,42 @@ const Invitations = () => {
       return;
     }
 
+    // Get user profile
     const { data: profile } = await db
       .from("user_profiles")
       .select("display_name")
       .eq("id", session.user.id)
       .single();
 
-    const { error: participantError } = await db
+    // Check if user is already a participant
+    const { data: existingParticipant } = await db
       .from("participants")
-      .insert({
-        game_id: gameId,
-        user_id: session.user.id,
-        name: profile?.display_name || session.user.email?.split("@")[0] || "Ukjent"
-      });
+      .select("*")
+      .eq("game_id", gameId)
+      .eq("user_id", session.user.id)
+      .single();
 
-    if (participantError) {
-      toast({ title: "Feil", description: participantError.message, variant: "destructive" });
-    } else {
-      toast({ title: "Invitasjon akseptert! 🎉", description: "Du er nå med i spillet" });
-      fetchInvitations(currentUserEmail);
+    if (!existingParticipant) {
+      // Add user as participant
+      const { error: participantError } = await db
+        .from("participants")
+        .insert({
+          game_id: gameId,
+          user_id: session.user.id,
+          name: profile?.display_name || session.user.email?.split("@")[0] || "Ukjent"
+        });
+
+      if (participantError) {
+        toast({ title: "Feil", description: participantError.message, variant: "destructive" });
+        return;
+      }
     }
+
+    toast({ 
+      title: "Invitasjon akseptert! 🎉", 
+      description: "Du er nå med i spillet og kan begynne å spille" 
+    });
+    fetchInvitations(currentUserEmail);
   };
 
   const handleRejectInvitation = async (invitationId: string) => {
@@ -169,7 +186,7 @@ const Invitations = () => {
             <div className="mb-8">
               <h1 className="text-4xl font-bold mb-2">Mine invitasjoner 📧</h1>
               <p className="text-muted-foreground">
-                Se og behandle invitasjoner til spill
+                Se og behandle invitasjoner til konsept. Når du aksepterer en invitasjon blir du automatisk med i spillet.
               </p>
             </div>
 
